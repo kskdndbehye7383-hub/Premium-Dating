@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Crown, Check, CreditCard, Calendar, Lock, ShieldAlert, CheckCircle, AlertOctagon } from "lucide-react";
+import { Crown, Check, CreditCard, Calendar, Lock, CheckCircle, AlertOctagon, ArrowLeft } from "lucide-react";
 import { cn } from "../lib/utils";
+import { mockLogout } from "./Login";
 
 export default function Membership() {
   const navigate = useNavigate();
@@ -99,18 +100,21 @@ export default function Membership() {
               <FeatureItem text="Hide your age and distance" />
             </div>
           </div>
-
-          <div className="relative z-10 mt-12 bg-white/10 p-4 rounded-xl border border-white/20 backdrop-blur-sm">
-            <p className="text-sm text-orange-50 font-medium flex items-center gap-2">
-              <ShieldAlert size={16} />
-              This is a prototype mockup. Do not enter real credit card details.
-            </p>
-          </div>
         </div>
 
         {/* Right Side: Payment Form */}
         <div className="md:w-1/2 p-10 flex flex-col justify-center">
-          <div className="mb-8">
+          <div className="mb-8 relative">
+            <button 
+              onClick={() => {
+                mockLogout();
+                navigate("/login", { replace: true });
+              }}
+              className="absolute -top-6 right-0 md:-top-4 flex items-center gap-1.5 text-sm font-semibold text-gray-400 hover:text-gray-900 transition-colors group z-20"
+            >
+              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+              Back to Login
+            </button>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Details</h2>
             <p className="text-gray-500 font-medium">Billed $9.99 monthly. Cancel anytime.</p>
           </div>
