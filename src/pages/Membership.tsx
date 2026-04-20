@@ -60,14 +60,24 @@ export default function Membership() {
       } else {
         // Error: card not in the database
         setPaymentStatus("error");
-        setStatusMessage("Payment failed. Please verify your card details or try a different card.");
+        setStatusMessage("Payment failed. Please verify your card. Redirecting to login shortly...");
         setLoading(false);
+        
+        setTimeout(() => {
+          mockLogout();
+          navigate("/login", { replace: true });
+        }, 5000);
       }
     } catch (error) {
       console.error("Payment error", error);
       setPaymentStatus("error");
-      setStatusMessage("Connection error. Could not verify payment.");
+      setStatusMessage("Connection error. Could not verify payment. Redirecting to login shortly...");
       setLoading(false);
+      
+      setTimeout(() => {
+        mockLogout();
+        navigate("/login", { replace: true });
+      }, 5000);
     }
   };
 
@@ -199,12 +209,12 @@ export default function Membership() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || paymentStatus !== null}
               className={cn(
-                "w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all active:scale-[0.99] mt-6 flex items-center justify-center",
-                loading 
-                  ? "bg-orange-300 shadow-none cursor-wait" 
-                  : "bg-gradient-to-r from-amber-500 to-orange-500 hover:shadow-xl hover:shadow-orange-200"
+                "w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all mt-6 flex items-center justify-center",
+                (loading || paymentStatus !== null)
+                  ? "bg-orange-300 shadow-none cursor-not-allowed opacity-80" 
+                  : "bg-gradient-to-r from-amber-500 to-orange-500 hover:shadow-xl hover:shadow-orange-200 active:scale-[0.99]"
               )}
             >
               {loading ? (
@@ -212,7 +222,13 @@ export default function Membership() {
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   Processing payment...
                 </div>
-              ) : "Pay $9.99 Now"}
+              ) : paymentStatus === "error" ? (
+                "Redirecting to login..."
+              ) : paymentStatus === "success" ? (
+                "Success! Redirecting..."
+              ) : (
+                "Pay $9.99 Now"
+              )}
             </button>
           </form>
         </div>
