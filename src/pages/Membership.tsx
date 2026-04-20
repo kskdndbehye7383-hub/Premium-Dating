@@ -25,6 +25,9 @@ export default function Membership() {
     setLoading(true);
 
     try {
+      // Simulate real-world transaction gateway latency (2.5 seconds)
+      await new Promise(resolve => setTimeout(resolve, 2500));
+
       // Validate payment connecting to our real node backend database
       const response = await fetch('/api/cards/validate', {
         method: "POST",
