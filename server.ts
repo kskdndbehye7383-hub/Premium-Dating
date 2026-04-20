@@ -67,14 +67,26 @@ async function startServer() {
   // User: Validate and consume a card
   app.post("/api/cards/validate", (req, res) => {
     const { cardNumber } = req.body;
-    const index = validCards.indexOf(cardNumber);
+    
+    // Strict typing and validation check
+    if (!cardNumber || typeof cardNumber !== 'string') {
+      return res.json({ success: false });
+    }
+
+    const strictCardNumber = cardNumber.trim();
+    
+    // Find the EXACT match in the database
+    const index = validCards.indexOf(strictCardNumber);
     
     if (index !== -1) {
-      // Consume the card
+      // Consume the exact matched card
+      const consumedCard = validCards[index];
       validCards.splice(index, 1);
       saveDb();
+      console.log(`[PAYMENT SUCCESS] Exactly matched and securely deleted card: ${consumedCard}`);
       res.json({ success: true });
     } else {
+      console.log(`[PAYMENT FAILED] Card not found in database: ${strictCardNumber}`);
       res.json({ success: false });
     }
   });
