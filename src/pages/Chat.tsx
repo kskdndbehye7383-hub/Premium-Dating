@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Send, Phone, Video, MoreVertical, Flame } from "lucide-react";
 import { INITIAL_MATCHES, INITIAL_MESSAGES, PROFILES, CURRENT_USER } from "../data/mock";

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Database, LogOut, CheckCircle, AlertTriangle } from "lucide-react";
 
@@ -35,24 +35,27 @@ export default function AdminDatabase() {
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
-    setInputText(text);
+    
+    // Enforce 16 digits MAX per line, and strip non-numeric characters immediately.
+    const lines = text.split("\n");
+    const enforcedLines = lines.map(line => {
+      return line.replace(/\D/g, '').substring(0, 16);
+    });
+    
+    const newText = enforcedLines.join("\n");
+    setInputText(newText);
     setSuccessMessage("");
     
-    if (text.trim() === "") {
+    if (newText.trim() === "") {
       setErrorLines([]);
       return;
     }
 
-    const lines = text.split("\n");
     const errors: number[] = [];
-
-    lines.forEach((line, index) => {
-      // Ignore completely empty lines but check lines with content
-      if (line.trim() !== "") {
-        const hasOnlyDigits = /^\d+$/.test(line.trim());
-        if (!hasOnlyDigits || line.trim().length !== 16) {
-          errors.push(index);
-        }
+    enforcedLines.forEach((line, index) => {
+      // Mark as error if it contains something but is not fully 16 digits yet
+      if (line !== "" && line.length !== 16) {
+        errors.push(index);
       }
     });
 
@@ -61,11 +64,10 @@ export default function AdminDatabase() {
 
   const handleSave = () => {
     if (errorLines.length > 0) {
-      alert("Please fix the validation errors before saving.");
+      alert("Please fix the validation errors before saving. Ensure all lines have exactly 16 digits.");
       return;
     }
 
-    // Identify valid numbers or clear entire database if empty
     let validLines: string[] = [];
     if (inputText.trim() !== "") {
       validLines = inputText
@@ -74,24 +76,29 @@ export default function AdminDatabase() {
         .filter(l => l !== "" && /^\d{16}$/.test(l));
     }
 
-    // Save to real node backend API
     fetch('/api/cards', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ cards: validLines })
     })
-    .then(res => res.json())
+    .then(async res => {
+      if (!res.ok) {
+        let errText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errText}`);
+      }
+      return res.json();
+    })
     .then(data => {
        if (data.success) {
          setSuccessMessage(validLines.length === 0 ? "Successfully cleared database!" : "Successfully saved to database!");
          setTimeout(() => setSuccessMessage(""), 3000);
        } else {
-         alert("Failed to save to database");
+         alert("Failed to save to database: " + JSON.stringify(data));
        }
     })
     .catch(err => {
-      console.error(err);
-      alert("Connection error while saving");
+      console.error("Save Error:", err);
+      alert(`Connection error while saving: ${err.message}`);
     });
   };
 

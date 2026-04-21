@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Crown, Check, CreditCard, Calendar, Lock, CheckCircle, AlertOctagon, ArrowLeft } from "lucide-react";
 import { cn } from "../lib/utils";

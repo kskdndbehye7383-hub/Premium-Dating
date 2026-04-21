@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { CURRENT_USER } from "../data/mock";
 import { Settings, Edit3, Shield, Star, Crown, LogOut, ChevronDown, Bell, EyeOff, MapPin, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";

@@ -1,3 +1,4 @@
+import React from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { Flame, MessageCircle, User } from "lucide-react";
 import { cn } from "../lib/utils";

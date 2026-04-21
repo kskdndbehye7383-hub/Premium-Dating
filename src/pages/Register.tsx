@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Flame, Mail, Lock, User as UserIcon } from "lucide-react";
 import { cn } from "../lib/utils";
