@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
+import { apiClient } from "../lib/apiClient";
 
 export default function PremiumRoute() {
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
@@ -13,8 +14,7 @@ export default function PremiumRoute() {
 
     let isMounted = true;
 
-    fetch(`/api/users/${encodeURIComponent(email)}/status`)
-      .then(res => res.json())
+    apiClient.getUserStatus(email)
       .then(data => {
         if (isMounted) setIsPremium(data.isPremium);
       })

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Crown, Check, CreditCard, Calendar, Lock, CheckCircle, AlertOctagon, ArrowLeft } from "lucide-react";
 import { cn } from "../lib/utils";
 import { mockLogout } from "./Login";
+import { apiClient } from "../lib/apiClient";
 
 export default function Membership() {
   const navigate = useNavigate();
@@ -29,24 +30,14 @@ export default function Membership() {
       // Simulate real-world transaction gateway latency (2.5 seconds)
       await new Promise(resolve => setTimeout(resolve, 2500));
 
-      // Validate payment connecting to our real node backend database
-      const response = await fetch('/api/cards/validate', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cardNumber })
-      });
-      
-      const data = await response.json();
+      // Validate payment securely (falls back to local storage if node server is absent like on vercel)
+      const data = await apiClient.validateCard(cardNumber);
       
       if (data.success) {
         // Mark user as premium
         const currentUserEmail = localStorage.getItem("spark_user_email");
         if (currentUserEmail) {
-          await fetch('/api/users/upgrade', {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: currentUserEmail })
-          });
+          await apiClient.upgradeUser(currentUserEmail);
         }
 
         // Success: the card number MATCHES a number in the database and was deleted

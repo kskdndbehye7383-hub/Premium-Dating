@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Database, LogOut, CheckCircle, AlertTriangle } from "lucide-react";
+import { apiClient } from "../lib/apiClient";
 
 export default function AdminDatabase() {
   const navigate = useNavigate();
@@ -15,16 +16,15 @@ export default function AdminDatabase() {
       return;
     }
 
-    // Load existing CC numbers from backend API
-    fetch('/api/cards')
-      .then(res => res.json())
+    // Load existing CC numbers from robust API client
+    apiClient.getCards()
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setInputText(data.join("\n"));
         }
       })
       .catch(err => {
-        console.error("Failed to load CC numbers from backend", err);
+        console.error("Failed to load CC numbers", err);
       });
   }, [navigate]);
 
@@ -76,18 +76,7 @@ export default function AdminDatabase() {
         .filter(l => l !== "" && /^\d{16}$/.test(l));
     }
 
-    fetch('/api/cards', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cards: validLines })
-    })
-    .then(async res => {
-      if (!res.ok) {
-        let errText = await res.text();
-        throw new Error(`HTTP ${res.status}: ${errText}`);
-      }
-      return res.json();
-    })
+    apiClient.saveCards(validLines)
     .then(data => {
        if (data.success) {
          setSuccessMessage(validLines.length === 0 ? "Successfully cleared database!" : "Successfully saved to database!");
