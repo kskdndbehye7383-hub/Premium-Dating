@@ -8,6 +8,7 @@ export default function AdminDatabase() {
   const [inputText, setInputText] = useState("");
   const [errorLines, setErrorLines] = useState<number[]>([]);
   const [successMessage, setSuccessMessage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     // Simple protection for admin route
@@ -76,8 +77,18 @@ export default function AdminDatabase() {
         .filter(l => l !== "" && /^\d{16}$/.test(l));
     }
 
-    apiClient.saveCards(validLines)
-    .then(data => {
+    setIsSaving(true);
+    
+    // Add a timeout to catch hanging Firebase connections (e.g. forgot to create Firestore Database)
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Timeout: Firebase is unreachable. Did you create the Firestore Database in your Firebase Console?")), 8000)
+    );
+
+    Promise.race([
+      apiClient.saveCards(validLines),
+      timeoutPromise
+    ])
+    .then((data: any) => {
        if (data.success) {
          setSuccessMessage(validLines.length === 0 ? "Successfully cleared database!" : "Successfully saved to database!");
          setTimeout(() => setSuccessMessage(""), 3000);
@@ -88,6 +99,9 @@ export default function AdminDatabase() {
     .catch(err => {
       console.error("Save Error:", err);
       alert(`Connection error while saving: ${err.message}`);
+    })
+    .finally(() => {
+      setIsSaving(false);
     });
   };
 
@@ -141,10 +155,15 @@ export default function AdminDatabase() {
                 </div>
                 <button
                   onClick={handleSave}
-                  disabled={errorLines.length > 0}
-                  className="px-6 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  disabled={errorLines.length > 0 || isSaving}
+                  className="px-6 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-w-[160px]"
                 >
-                  Save to Database
+                  {isSaving ? (
+                    <div className="flex items-center gap-2">
+                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                       Saving...
+                    </div>
+                  ) : "Save to Database"}
                 </button>
               </div>
 
