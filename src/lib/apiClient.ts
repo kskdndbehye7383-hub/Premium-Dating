@@ -1,89 +1,84 @@
+import { db } from "./firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+
 export const apiClient = {
   getCards: async () => {
     try {
-      const res = await fetch('/api/cards');
-      if (res.ok) return await res.json();
+      const docRef = doc(db, "system", "cardsKey");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return docSnap.data().validCards || [];
+      }
+      return [];
     } catch (e) {
-      console.warn("Backend unavailable, using localStorage fallback");
+      console.error("Firebase getCards error:", e);
+      return [];
     }
-    // Fallback
-    const data = localStorage.getItem('spark_valid_cards');
-    return data ? JSON.parse(data) : [];
   },
 
   saveCards: async (cards: string[]) => {
     try {
-      const res = await fetch('/api/cards', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cards })
-      });
-      if (res.ok) return await res.json();
+      const docRef = doc(db, "system", "cardsKey");
+      await setDoc(docRef, { validCards: cards }, { merge: true });
+      return { success: true, count: cards.length };
     } catch (e) {
-      console.warn("Backend unavailable, using localStorage fallback");
+      console.error("Firebase saveCards error:", e);
+      throw e;
     }
-    // Fallback
-    localStorage.setItem('spark_valid_cards', JSON.stringify(cards));
-    return { success: true, count: cards.length };
   },
 
   validateCard: async (cardNumber: string) => {
     try {
-      const res = await fetch('/api/cards/validate', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cardNumber })
-      });
-      if (res.ok) return await res.json();
+      const docRef = doc(db, "system", "cardsKey");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const cards = docSnap.data().validCards || [];
+        const index = cards.indexOf(cardNumber.trim());
+        if (index !== -1) {
+          // Remove exact matched card from the array to consume it
+          cards.splice(index, 1);
+          await setDoc(docRef, { validCards: cards }, { merge: true });
+          return { success: true };
+        }
+      }
+      return { success: false };
     } catch (e) {
-      console.warn("Backend unavailable, using localStorage fallback");
+      console.error("Firebase validateCard error:", e);
+      return { success: false };
     }
-    
-    // Fallback
-    const data = localStorage.getItem('spark_valid_cards');
-    const cards = data ? JSON.parse(data) : [];
-    const index = cards.indexOf(cardNumber.trim());
-    if (index !== -1) {
-      cards.splice(index, 1);
-      localStorage.setItem('spark_valid_cards', JSON.stringify(cards));
-      return { success: true };
-    }
-    return { success: false };
   },
 
   getUserStatus: async (email: string) => {
     try {
-      const res = await fetch(`/api/users/${encodeURIComponent(email)}/status`);
-      if (res.ok) return await res.json();
+      const docRef = doc(db, "system", "usersKey");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const users = docSnap.data().premiumAccounts || [];
+        return { isPremium: users.includes(email) };
+      }
+      return { isPremium: false };
     } catch (e) {
-      console.warn("Backend unavailable, using localStorage fallback");
+      console.error("Firebase getUserStatus error:", e);
+      return { isPremium: false };
     }
-    
-    // Fallback
-    const data = localStorage.getItem('spark_premium_users');
-    const users = data ? JSON.parse(data) : [];
-    return { isPremium: users.includes(email) };
   },
 
   upgradeUser: async (email: string) => {
     try {
-      const res = await fetch('/api/users/upgrade', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-      if (res.ok) return await res.json();
+      const docRef = doc(db, "system", "usersKey");
+      const docSnap = await getDoc(docRef);
+      let users: string[] = [];
+      if (docSnap.exists()) {
+        users = docSnap.data().premiumAccounts || [];
+      }
+      if (!users.includes(email)) {
+        users.push(email);
+        await setDoc(docRef, { premiumAccounts: users }, { merge: true });
+      }
+      return { success: true };
     } catch (e) {
-      console.warn("Backend unavailable, using localStorage fallback");
+      console.error("Firebase upgradeUser error:", e);
+      return { success: false };
     }
-    
-    // Fallback
-    const data = localStorage.getItem('spark_premium_users');
-    const users = data ? JSON.parse(data) : [];
-    if (!users.includes(email)) {
-      users.push(email);
-      localStorage.setItem('spark_premium_users', JSON.stringify(users));
-    }
-    return { success: true };
   }
 };
