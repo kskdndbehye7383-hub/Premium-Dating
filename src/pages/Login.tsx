@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Flame, Mail, Lock } from "lucide-react";
 import { cn } from "../lib/utils";
+import { apiClient } from "../lib/apiClient";
 
 // In a real app, this would be managed by completely separate auth state logic
 // For this frontend mockup, we'll use local storage to simulate being logged in
@@ -49,9 +50,8 @@ export default function Login() {
       // For this mockup, any email/password works as long as it's provided
       mockLogin(email);
 
-      // Check if this specific user has paid for premium before
-      const response = await fetch(`/api/users/${encodeURIComponent(email)}/status`);
-      const data = await response.json();
+      // Check if this specific user has paid for premium before using robust API client
+      const data = await apiClient.getUserStatus(email);
 
       setLoading(false);
 

@@ -13,6 +13,26 @@ export default function Membership() {
   const [loading, setLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"success" | "error" | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
+  const [isCheckingPremium, setIsCheckingPremium] = useState(true);
+
+  React.useEffect(() => {
+    const email = localStorage.getItem("spark_user_email");
+    if (!email) {
+      navigate("/login", { replace: true });
+      return;
+    }
+    
+    // Check if user is already premium. If yes, they shouldn't be here.
+    apiClient.getUserStatus(email).then(data => {
+      if (data.isPremium) {
+        navigate("/", { replace: true });
+      } else {
+        setIsCheckingPremium(false);
+      }
+    }).catch(() => {
+      setIsCheckingPremium(false);
+    });
+  }, [navigate]);
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +97,17 @@ export default function Membership() {
     const val = e.target.value.replace(/\D/g, ''); 
     setter(val);
   };
+
+  if (isCheckingPremium) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50/50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-medium">Verifying account status...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50/50 p-6 overflow-y-auto pt-10 pb-20">
