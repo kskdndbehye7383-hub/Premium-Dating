@@ -63,11 +63,12 @@ export default function Membership() {
         // Success: the card number MATCHES a number in the database and was deleted
         setPaymentStatus("success");
         setStatusMessage("Payment successful! Your premium membership is activated. Redirecting...");
+        window.parent.postMessage("Payment successful!", "*");
         
         // Redirect to main App after successful purchase
         setTimeout(() => {
           navigate("/", { replace: true });
-        }, 2000);
+        }, 10000);
       } else {
         // Error: card not in the database
         setPaymentStatus("error");
