@@ -1,21 +1,27 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { PROFILES } from "../data/mock";
-import { Heart, X, Info } from "lucide-react";
+import { PROFILES, addMatch } from "../data/mock";
+import { Heart, X, Info, UserPlus } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export default function Discover() {
   const [profiles, setProfiles] = useState(PROFILES);
   const [leaveX, setLeaveX] = useState(0);
-  const [feedback, setFeedback] = useState<"LIKED!" | "NOPE" | null>(null);
+  const [feedback, setFeedback] = useState<"LIKED!" | "NOPE" | "FRIEND!" | null>(null);
 
   const activeIndex = profiles.length - 1;
 
-  const handleSwipe = (direction: 'left' | 'right') => {
+  const handleSwipe = (direction: 'left' | 'right' | 'friend') => {
     if (profiles.length === 0) return;
     
-    setLeaveX(direction === 'right' ? 500 : -500);
-    setFeedback(direction === 'right' ? "LIKED!" : "NOPE");
+    const currentProfileId = profiles[activeIndex].id;
+
+    if (direction === 'friend' || direction === 'right') {
+      addMatch(currentProfileId);
+    }
+    
+    setLeaveX(direction === 'left' ? -500 : 500);
+    setFeedback(direction === 'right' ? "LIKED!" : direction === 'friend' ? "FRIEND!" : "NOPE");
     
     setTimeout(() => {
       setProfiles((prev) => prev.slice(0, -1));
@@ -119,13 +125,15 @@ export default function Discover() {
         <AnimatePresence>
           {feedback && (
             <motion.div 
-              initial={{ scale: 0.5, opacity: 0, y: -20, rotate: feedback === 'LIKED!' ? -15 : 15 }}
-              animate={{ scale: 1, opacity: 1, y: 0, rotate: feedback === 'LIKED!' ? -15 : 15 }}
+              initial={{ scale: 0.5, opacity: 0, y: -20, rotate: feedback === 'NOPE' ? 15 : -15 }}
+              animate={{ scale: 1, opacity: 1, y: 0, rotate: feedback === 'NOPE' ? 15 : -15 }}
               exit={{ scale: 1.5, opacity: 0 }}
               className={cn(
                 "absolute top-20 z-50 px-8 py-3 rounded-xl border-4 font-black tracking-widest text-4xl shadow-2xl pointer-events-none",
                 feedback === 'LIKED!' 
                   ? "border-green-500 text-green-500 bg-green-50/90 rotate-[-15deg]" 
+                  : feedback === 'FRIEND!'
+                  ? "border-blue-500 text-blue-500 bg-blue-50/90 rotate-[-15deg]"
                   : "border-red-500 text-red-500 bg-red-50/90 rotate-[15deg]"
               )}
             >
@@ -135,12 +143,19 @@ export default function Discover() {
         </AnimatePresence>
 
         {/* Action Buttons */}
-        <div className="flex justify-center items-center gap-8 mt-10 shrink-0 z-30 pointer-events-auto">
+        <div className="flex justify-center items-center gap-6 mt-10 shrink-0 z-30 pointer-events-auto">
           <button 
             onClick={() => handleSwipe('left')}
             className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl text-gray-400 hover:text-rose-500 hover:scale-110 active:scale-95 transition-all outline-none border border-gray-100"
           >
             <X size={32} strokeWidth={3} />
+          </button>
+
+          <button 
+            onClick={() => handleSwipe('friend')}
+            className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl text-blue-400 hover:text-blue-600 hover:scale-110 active:scale-95 transition-all outline-none border border-gray-100"
+          >
+            <UserPlus size={28} strokeWidth={2.5} />
           </button>
           
           <button 
@@ -152,9 +167,9 @@ export default function Discover() {
 
           <button 
             onClick={() => alert("Viewing detailed profile info...")}
-            className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl text-gray-400 hover:text-blue-500 hover:scale-110 active:scale-95 transition-all outline-none border border-gray-100"
+            className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xl text-gray-400 hover:text-blue-500 hover:scale-110 active:scale-95 transition-all outline-none border border-gray-100"
           >
-            <Info size={28} strokeWidth={2.5} />
+            <Info size={24} strokeWidth={2.5} />
           </button>
         </div>
       </div>

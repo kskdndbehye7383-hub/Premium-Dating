@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Send, Phone, Video, MoreVertical, Flame } from "lucide-react";
+import { Send, MoreVertical, Flame } from "lucide-react";
 import { INITIAL_MATCHES, INITIAL_MESSAGES, PROFILES, CURRENT_USER } from "../data/mock";
 import { cn } from "../lib/utils";
 import type { Message } from "../types";
@@ -49,7 +49,8 @@ export default function Chat() {
     setMessages([...messages, newMsg]);
     setInputText("");
 
-    // Simulate auto-reply
+    // Simulate auto-reply with a random delay between 1 and 5 seconds
+    const randomDelay = Math.floor(Math.random() * 4000) + 1000;
     setTimeout(() => {
       const replyMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -59,7 +60,7 @@ export default function Chat() {
         timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, replyMsg]);
-    }, 1500);
+    }, randomDelay);
   };
 
   return (
@@ -76,8 +77,6 @@ export default function Chat() {
           </div>
         </div>
         <div className="flex items-center gap-2 text-gray-400">
-          <button onClick={() => alert("Voice call functionality coming soon!")} className="p-2.5 hover:text-gray-900 hover:bg-gray-50 rounded-full transition-colors"><Phone size={22} /></button>
-          <button onClick={() => alert("Video call functionality coming soon!")} className="p-2.5 hover:text-gray-900 hover:bg-gray-50 rounded-full transition-colors"><Video size={22} /></button>
           <button onClick={() => alert("User reported and blocked.")} className="p-2.5 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"><MoreVertical size={22} /></button>
         </div>
       </div>
